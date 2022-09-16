@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "HackZurichApp"
-include ':app'
+include ':HackZurichApp'

@@ -9,6 +9,7 @@ import org.opencv.core.*
 import org.opencv.core.Core.bitwise_and
 import org.opencv.imgproc.Imgproc.*
 import java.lang.Math.PI
+import java.lang.Math.min
 
 
 class MainActivity : AppCompatActivity() {
@@ -61,8 +62,14 @@ class MainActivity : AppCompatActivity() {
             val y2 = vec[3]
             val start = Point(x1, y1)
             val end = Point(x2, y2)
-            line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
+            // only draw lines that reach the top
+            val min = min(y2, y1);
+            if (min < 600.0) {
+                line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
+            }
         }
+
+        println("amount of lines drawn: " + lineImage.rows())
 
         val bitmapImage = Bitmap.createBitmap(originalImage.cols(), originalImage.rows(), Bitmap.Config.ARGB_8888)
 

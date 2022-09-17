@@ -6,6 +6,7 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.*
 import org.opencv.core.*
+import org.opencv.core.Core.bitwise_and
 import org.opencv.imgproc.Imgproc.*
 import java.lang.Math.PI
 
@@ -21,14 +22,34 @@ class MainActivity : AppCompatActivity() {
         val mainImage = Utils.loadResource(this, R.drawable.movie_moment, CvType.CV_8UC4)
 
         val resizedImage = Mat()
-        resize(mainImage, resizedImage, Size(mainImage.width()*2.4, mainImage.height()*2.4))
+        resize(mainImage, resizedImage, Size(mainImage.width()*2.0, mainImage.height()*2.0))
 
-        val cannyImage = getEdges(resizedImage, 100.0, 150.0, 5.0, 5.0)
+        val grayscaleImage = Mat()
+        cvtColor(resizedImage, grayscaleImage, COLOR_RGBA2GRAY)
 
-        calculateLine(cannyImage, resizedImage, mainImageView, 300, 20.0, 500.0)
+        val blurredImage = Mat()
+        GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 0.0)
+
+        calculateLine(getSlice(blurredImage), resizedImage, mainImageView, 50.0, 81.0, 300, 10.0, 80.0)
+        /* THINGS FOR PERSPECTIVE WARPING
+        val srcMat = Mat(4, 1, CvType.CV_32FC2)
+        val dstMat = Mat(4, 1, CvType.CV_32FC2)
+
+
+        srcMat.put(0, 0, 50.0, 50.0)
+        dstMat.put(0, 0, 50.0, 50.0)
+        val perspectiveTransform = getPerspectiveTransform(srcMat, dstMat)
+
+        val dst: Mat = resizedImage.clone()
+
+        warpPerspective(resizedImage, dst, perspectiveTransform, Size(1600.0, 2500.0)) */
+
     }
 
-    fun calculateLine(cannyImage: Mat, originalImage: Mat, mainImageView: ImageView, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {
+    fun calculateLine(inputImage: Mat, originalImage: Mat, mainImageView: ImageView, cannyThreshold1: Double, cannyThreshold2: Double, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {
+        val cannyImage = Mat()
+        Canny(inputImage, cannyImage, cannyThreshold1, cannyThreshold2)
+
         var lineImage = Mat()
         HoughLinesP(cannyImage, lineImage, 1.0, PI/180, lineThreshold, minLineLength, maxLineGap)
 
@@ -40,7 +61,7 @@ class MainActivity : AppCompatActivity() {
             val y2 = vec[3]
             val start = Point(x1, y1)
             val end = Point(x2, y2)
-            line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 5)
+            line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
         }
 
         val bitmapImage = Bitmap.createBitmap(originalImage.cols(), originalImage.rows(), Bitmap.Config.ARGB_8888)
@@ -48,28 +69,50 @@ class MainActivity : AppCompatActivity() {
         val polygons: List<MatOfPoint> = listOf(
             MatOfPoint(
                 Point(0.0, originalImage.height().toDouble()), // bottom left
-                Point(450.0, 400.0),  // top left
-                Point(450.0, 400.0),  // top right
-                Point( originalImage.width().toDouble(), originalImage.height().toDouble())  // bottom right
+                Point(0.0, 450.0),  // top left
+                Point(originalImage.width().toDouble(), 450.0),  // top right
+                Point(originalImage.width().toDouble(), originalImage.height().toDouble())  // bottom right
             )
         )
 
-        polylines(originalImage, polygons, true, Scalar(0.0, 0.0, 255.0), 5)
+        polylines(originalImage, polygons, true, Scalar(0.0, 0.0, 255.0), 10)
         Utils.matToBitmap(originalImage, bitmapImage)
 
         mainImageView.setImageBitmap(bitmapImage)
     }
 
-    fun getEdges(source: Mat, threshold1: Double, threshold2: Double, blurSize: Double, sigmaX: Double): Mat {
-        val gray = Mat()
-        cvtColor(source, gray, COLOR_RGB2GRAY)
+    fun getSlice(source: Mat): Mat {
+        val height = source.height().toDouble()
+        val width = source.width().toDouble()
+        val polygons: List<MatOfPoint> = listOf(
+            MatOfPoint(
+                Point(0.0, height), // bottom left
+                Point(0.0, 450.0),  // top left
+                Point(width, 450.0),  // top right
+                Point(width, height)  // bottom right
+            )
+        )
 
-        val blur = Mat()
-        GaussianBlur(gray, blur, Size(blurSize, blurSize), sigmaX)
+        val mask = Mat.zeros(source.rows(), source.cols(), 0)
+        fillPoly(mask, polygons, Scalar(255.0))
 
         val dest = Mat()
-        Canny(blur, dest, threshold1, threshold2)
+        bitwise_and(source, mask, dest)
 
         return dest
     }
+
+    /**
+     * RECTANGLE SHAPE (BLUE)
+     */
+    /*
+    val polygons: List<MatOfPoint> = listOf(
+        MatOfPoint(
+            Point(0.0, height - 200.0), // bottom left
+            Point(450.0, 400.0),  // top left
+            Point(450.0, 400.0),  // top right
+            Point(width, height - 200.0)  // bottom right
+        )
+    )
+    */
 }

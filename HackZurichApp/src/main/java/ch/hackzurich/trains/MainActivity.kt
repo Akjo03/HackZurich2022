@@ -82,51 +82,10 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        var clearance1: List<MatOfPoint> = listOf(
-            MatOfPoint(
-                Point(startX, bottomLeft.y),
-                Point(131.0 + startX, 9.0 * -1 + bottomLeft.y),
-                Point(169.0 + startX, 36.0 * -1 + bottomLeft.y),
-                Point(169.0 + startX, 56.0 * -1 + bottomLeft.y),
-                Point(210.0 + startX, 56.0 * -1 + bottomLeft.y),
-                Point(210.0 + startX, 170.0 * -1 + bottomLeft.y),
-                Point(220.0 + startX, 170.0 * -1 + bottomLeft.y),
-                Point(220.0 + startX, 300.0 * -1 + bottomLeft.y),
-                Point(210.0 + startX, 300.0 * -1 + bottomLeft.y),
-                Point(210.0 + startX, 333.0 * -1 + bottomLeft.y),
-                Point(166.0 + startX, 430.0 * -1 + bottomLeft.y),
-                Point(102.2 + startX, 480.0 * -1 + bottomLeft.y),
-                Point(102.0 + startX, 480.0 * -1 + bottomLeft.y),
-                Point(102.0 + startX, 600.0 * -1 + bottomLeft.y),
-                Point(0.0 + startX, 600.0 * -1 + bottomLeft.y)
-            )
-        )
-        var clearance2: List<MatOfPoint> = listOf(
-            MatOfPoint(
-                Point(startX, bottomLeft.y),
-                Point(131.0 * -1 + startX, 9.0 * -1 + bottomLeft.y),
-                Point(169.0 * -1 + startX, 36.0 * -1 + bottomLeft.y),
-                Point(169.0 * -1 + startX, 56.0 * -1 + bottomLeft.y),
-                Point(210.0 * -1 + startX, 56.0 * -1 + bottomLeft.y),
-                Point(210.0 * -1 + startX, 170.0 * -1 + bottomLeft.y),
-                Point(220.0 * -1 + startX, 170.0 * -1 + bottomLeft.y),
-                Point(220.0 * -1 + startX, 300.0 * -1 + bottomLeft.y),
-                Point(210.0 * -1 + startX, 300.0 * -1 + bottomLeft.y),
-                Point(210.0 * -1 + startX, 333.0 * -1 + bottomLeft.y),
-                Point(166.0 * -1 + startX, 430.0 * -1 + bottomLeft.y),
-                Point(102.2 * -1 + startX, 480.0 * -1 + bottomLeft.y),
-                Point(102.0 * -1 + startX, 480.0 * -1 + bottomLeft.y),
-                Point(102.0 * -1 + startX, 600.0 * -1 + bottomLeft.y),
-                Point(0.0 * -1 + startX, 600.0 * -1 + bottomLeft.y)
-            )
-        )
-        /*
-        var flippedClearance = clearance.get(0).clone()
-        Core.multiply(clearance.get(0), MatOfDouble(1.0, -1.0, 1.0), flippedClearance)
+        var factor = 1.2
+        var clearance1 = getRightClearance(startX, bottomLeft.y, factor)
+        var clearance2 = getLeftClearance(startX, bottomLeft.y, factor)
 
-        // clearance = listOf(flippedClearance as MatOfPoint)
-        var flippedMoment = listOf(MatOfPoint(flippedClearance))
-        */
 
         var innerShape = MatOfPoint(
             bottomLeft, // bottom left
@@ -149,7 +108,6 @@ class MainActivity : AppCompatActivity() {
         val outline: List<MatOfPoint> = listOf(
             outerShape
         )
-
 
         // var corners = arrayOf(bottomLeft, topLeft, topRight, bottomRight)
         // var transform = transformPerspective(originalImage, innerShape, outerShape, corners)
@@ -242,17 +200,49 @@ class MainActivity : AppCompatActivity() {
         return Pair(Point(avgOfXOrigins, avgOfYOrigins), Point(avgOfXPoint, avgOfYPoint))
     }
 
-    /**
-     * RECTANGLE SHAPE (BLUE)
-     */
-    /*
-    val polygons: List<MatOfPoint> = listOf(
-        MatOfPoint(
-            Point(0.0, height - 200.0), // bottom left
-            Point(450.0, 400.0),  // top left
-            Point(450.0, 400.0),  // top right
-            Point(width, height - 200.0)  // bottom right
+    fun getRightClearance(anchorX: Double, anchorY: Double, factor: Double): List<MatOfPoint> {
+        var clearance: List<MatOfPoint> = listOf(
+            MatOfPoint(
+                Point(anchorX, anchorY),
+                Point(131.0 + anchorX, 9.0 * -1 + anchorY),
+                Point(169.0 * factor + anchorX, 36.0 * -1 + anchorY),
+                Point(169.0 * factor + anchorX, 56.0 * -1 * factor + anchorY),
+                Point(210.0 * factor + anchorX, 56.0 * -1 * factor + anchorY),
+                Point(210.0 * factor + anchorX, 170.0 * -1 * factor + anchorY),
+                Point(220.0 * factor + anchorX, 170.0 * -1 * factor + anchorY),
+                Point(220.0 * factor + anchorX, 300.0 * -1 * factor + anchorY),
+                Point(210.0 * factor + anchorX, 300.0 * -1 * factor + anchorY),
+                Point(210.0 * factor + anchorX, 333.0 * -1 * factor + anchorY),
+                Point(166.0 * factor + anchorX, 430.0 * -1 * factor + anchorY),
+                Point(102.2 * factor + anchorX, 480.0 * -1 * factor + anchorY),
+                Point(102.0 * factor + anchorX, 480.0 * -1 * factor + anchorY),
+                Point(102.0 * factor + anchorX, 600.0 * -1 * factor + anchorY),
+                Point(0.0* factor  + anchorX, 600.0 * -1 * factor + anchorY)
+            )
         )
-    )
-    */
+        return clearance
+    }
+
+    fun getLeftClearance(anchorX: Double, anchorY: Double, factor: Double): List<MatOfPoint> {
+        var clearance: List<MatOfPoint> = listOf(
+            MatOfPoint(
+                Point(anchorX, anchorY),
+                Point(131.0 * -1 * factor + anchorX, 9.0 * -1 * factor + anchorY),
+                Point(169.0 * -1 * factor + anchorX, 36.0 * -1 * factor + anchorY),
+                Point(169.0 * -1 * factor + anchorX, 56.0 * -1 * factor + anchorY),
+                Point(210.0 * -1 * factor + anchorX, 56.0 * -1 * factor + anchorY),
+                Point(210.0 * -1 * factor + anchorX, 170.0 * -1 * factor + anchorY),
+                Point(220.0 * -1 * factor + anchorX, 170.0 * -1 * factor + anchorY),
+                Point(220.0 * -1 * factor + anchorX, 300.0 * -1 * factor + anchorY),
+                Point(210.0 * -1 * factor + anchorX, 300.0 * -1 * factor + anchorY),
+                Point(210.0 * -1 * factor + anchorX, 333.0 * -1 * factor + anchorY),
+                Point(166.0 * -1 * factor + anchorX, 430.0 * -1 * factor + anchorY),
+                Point(102.2 * -1 * factor + anchorX, 480.0 * -1 * factor + anchorY),
+                Point(102.0 * -1 * factor + anchorX, 480.0 * -1 * factor + anchorY),
+                Point(102.0 * -1 * factor + anchorX, 600.0 * -1 * factor + anchorY),
+                Point(0.0 * -1 * factor + anchorX, 600.0 * -1 * factor + anchorY)
+            )
+        )
+        return clearance
+    }
 }

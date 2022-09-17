@@ -1,10 +1,15 @@
 package ch.hackzurich.trains
 
 import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.*
 import org.opencv.core.*
@@ -17,6 +22,8 @@ import kotlin.math.roundToInt
 
 
 class MainActivity : AppCompatActivity() {
+    var index = 0
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -25,18 +32,40 @@ class MainActivity : AppCompatActivity() {
         val mainImageView = findViewById<ImageView>(R.id.imageView)
         setImageViewListener(mainImageView)
 
-        val mainImage = Utils.loadResource(this, R.drawable.movie_moment, CvType.CV_8UC4)
+        var nextFrameView = findViewById<Button>(R.id.nextFrameButton)
+        var retriever = MediaMetadataRetriever()
+        var mainVideo = Uri.parse("android.resource://$packageName/${R.raw.movie}")
+        retriever.setDataSource(this, mainVideo)
+
+        var currentFrameBitmap = retriever.getFrameAtIndex(index)
+        var currentFrame = Mat()
+        Utils.bitmapToMat(currentFrameBitmap, currentFrame)
 
         var resizedImage = Mat()
-        resize(mainImage, resizedImage, Size(mainImage.width()*2.0, mainImage.height()*2.0))
-
+        resize(currentFrame, resizedImage, Size(currentFrame.width()*2.0, currentFrame.height()*2.0))
         val grayscaleImage = Mat()
         cvtColor(resizedImage, grayscaleImage, COLOR_RGBA2GRAY)
-
         var blurredImage = Mat()
-        GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 0.0)
-
+        GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 5.0)
         calculateLine(getSlice(blurredImage), resizedImage, mainImageView, 50.0, 81.0, 300, 10.0, 80.0)
+
+        try {
+            nextFrameView.setOnClickListener {
+                index += 60
+
+                var currentFrameBitmap = retriever.getFrameAtIndex(index)
+                var currentFrame = Mat()
+                Utils.bitmapToMat(currentFrameBitmap, currentFrame)
+
+                var resizedImage = Mat()
+                resize(currentFrame, resizedImage, Size(currentFrame.width()*2.0, currentFrame.height()*2.0))
+                val grayscaleImage = Mat()
+                cvtColor(resizedImage, grayscaleImage, COLOR_RGBA2GRAY)
+                var blurredImage = Mat()
+                GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 5.0)
+                calculateLine(getSlice(blurredImage), resizedImage, mainImageView, 50.0, 81.0, 300, 10.0, 80.0)
+            }
+        } catch (ignored: Exception) {}
     }
 
     fun calculateLine(inputImage: Mat, originalImage: Mat, mainImageView: ImageView, cannyThreshold1: Double, cannyThreshold2: Double, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {

@@ -11,4 +11,5 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="top" android:background="@color/black"/>
+    <Button android:id="@+id/nextFrameButton" android:layout_width="300px" android:layout_height="130px" android:layout_gravity="bottom|center_horizontal" android:text="Next"/>
 </FrameLayout>

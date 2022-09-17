@@ -40,6 +40,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun calculateLine(inputImage: Mat, originalImage: Mat, mainImageView: ImageView, cannyThreshold1: Double, cannyThreshold2: Double, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {
+        val topLeft = Point(356.96777, 724.9519)
+        val topRight = Point(529.9695, 724.9519)
+        val bottomLeft = Point(261.97998, 950.8967)
+        val bottomRight = Point(625.94604, 950.8967)
+        val startX = bottomLeft.x + ((bottomRight.x - bottomLeft.x) / 2).roundToInt()
+
         val cannyImage = Mat()
         Canny(inputImage, cannyImage, cannyThreshold1, cannyThreshold2)
 
@@ -72,36 +78,51 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        var clearance: List<MatOfPoint> = listOf(
+        var clearance1: List<MatOfPoint> = listOf(
             MatOfPoint(
-                Point(0.0, 0.0),
-                Point(131.0, 9.0),
-                Point(169.0, 36.0),
-                Point(169.0, 56.0),
-                Point(210.0, 56.0),
-                Point(210.0, 170.0),
-                Point(220.0, 170.0),
-                Point(220.0, 300.0),
-                Point(210.0, 300.0),
-                Point(210.0, 333.0),
-                Point(166.0, 430.0),
-                Point(102.2, 480.0),
-                Point(102.0, 480.0),
-                Point(102.0, 600.0),
-                Point(0.0, 600.0)
+                Point(startX, bottomLeft.y),
+                Point(131.0 + startX, 9.0 * -1 + bottomLeft.y),
+                Point(169.0 + startX, 36.0 * -1 + bottomLeft.y),
+                Point(169.0 + startX, 56.0 * -1 + bottomLeft.y),
+                Point(210.0 + startX, 56.0 * -1 + bottomLeft.y),
+                Point(210.0 + startX, 170.0 * -1 + bottomLeft.y),
+                Point(220.0 + startX, 170.0 * -1 + bottomLeft.y),
+                Point(220.0 + startX, 300.0 * -1 + bottomLeft.y),
+                Point(210.0 + startX, 300.0 * -1 + bottomLeft.y),
+                Point(210.0 + startX, 333.0 * -1 + bottomLeft.y),
+                Point(166.0 + startX, 430.0 * -1 + bottomLeft.y),
+                Point(102.2 + startX, 480.0 * -1 + bottomLeft.y),
+                Point(102.0 + startX, 480.0 * -1 + bottomLeft.y),
+                Point(102.0 + startX, 600.0 * -1 + bottomLeft.y),
+                Point(0.0 + startX, 600.0 * -1 + bottomLeft.y)
             )
         )
-
+        var clearance2: List<MatOfPoint> = listOf(
+            MatOfPoint(
+                Point(startX, bottomLeft.y),
+                Point(131.0 * -1 + startX, 9.0 * -1 + bottomLeft.y),
+                Point(169.0 * -1 + startX, 36.0 * -1 + bottomLeft.y),
+                Point(169.0 * -1 + startX, 56.0 * -1 + bottomLeft.y),
+                Point(210.0 * -1 + startX, 56.0 * -1 + bottomLeft.y),
+                Point(210.0 * -1 + startX, 170.0 * -1 + bottomLeft.y),
+                Point(220.0 * -1 + startX, 170.0 * -1 + bottomLeft.y),
+                Point(220.0 * -1 + startX, 300.0 * -1 + bottomLeft.y),
+                Point(210.0 * -1 + startX, 300.0 * -1 + bottomLeft.y),
+                Point(210.0 * -1 + startX, 333.0 * -1 + bottomLeft.y),
+                Point(166.0 * -1 + startX, 430.0 * -1 + bottomLeft.y),
+                Point(102.2 * -1 + startX, 480.0 * -1 + bottomLeft.y),
+                Point(102.0 * -1 + startX, 480.0 * -1 + bottomLeft.y),
+                Point(102.0 * -1 + startX, 600.0 * -1 + bottomLeft.y),
+                Point(0.0 * -1 + startX, 600.0 * -1 + bottomLeft.y)
+            )
+        )
+        /*
         var flippedClearance = clearance.get(0).clone()
         Core.multiply(clearance.get(0), MatOfDouble(1.0, -1.0, 1.0), flippedClearance)
 
         // clearance = listOf(flippedClearance as MatOfPoint)
         var flippedMoment = listOf(MatOfPoint(flippedClearance))
-
-        val topLeft = Point(356.96777, 724.9519)
-        val topRight = Point(529.9695, 724.9519)
-        val bottomLeft = Point(261.97998, 950.8967)
-        val bottomRight = Point(625.94604, 950.8967)
+        */
 
         var innerShape = MatOfPoint(
             bottomLeft, // bottom left
@@ -128,12 +149,11 @@ class MainActivity : AppCompatActivity() {
 
         // var corners = arrayOf(bottomLeft, topLeft, topRight, bottomRight)
         // var transform = transformPerspective(originalImage, innerShape, outerShape, corners)
-        val startX = bottomLeft.x + ((bottomRight.x - bottomLeft.x) / 2).roundToInt()
-        println("the width: " + (kotlin.math.abs((bottomRight.x - bottomLeft.x) / 2)).roundToInt())
-        polylines(originalImage, rectangle, true, Scalar(0.0, 0.0, 255.0), 10)
+        // polylines(originalImage, rectangle, true, Scalar(0.0, 0.0, 255.0), 10)
         polylines(originalImage, inner, true, Scalar(255.0, 255.0, 0.0), 5)
         polylines(originalImage, outline, true, Scalar(0.0, 255.0, 0.0), 5)
-        polylines(originalImage, flippedMoment, true, Scalar(0.0, 255.0, 0.0), 5)
+        polylines(originalImage, clearance1, true, Scalar(0.0, 255.0, 0.0), 5)
+        polylines(originalImage, clearance2, true, Scalar(0.0, 255.0, 0.0), 5)
         circle(originalImage, Point(startX.toDouble(), bottomLeft.y), 20, Scalar(0.0, 0.0, 0.0), 5)
         /*
         val srcMat = Mat(4, 1, CvType.CV_32FC2)

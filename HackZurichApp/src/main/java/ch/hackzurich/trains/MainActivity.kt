@@ -76,25 +76,25 @@ class MainActivity : AppCompatActivity() {
         val bottomLeft = Point(261.97998, 950.8967)
         val bottomRight = Point(625.94604, 950.8967)
 
-        var innerShape = MatOfPoint(
+        var innerShape = MatOfPoint2f(
             bottomLeft, // bottom left
             topLeft,  // top left
             topRight,  // top right
             bottomRight  // bottom right
         )
 
-        var outerShape = MatOfPoint(
+        var outerShape = MatOfPoint2f(
             bottomLeft, // bottom left
             Point(bottomLeft.x, topLeft.y),  // top left
             Point(bottomRight.x, topRight.y),  // top right
             bottomRight  // bottom right
         )
 
-        val inner: List<MatOfPoint> = listOf(
+        val inner: List<MatOfPoint2f> = listOf(
             innerShape
         )
 
-        val outline: List<MatOfPoint> = listOf(
+        val outline: List<MatOfPoint2f> = listOf(
             outerShape
         )
 
@@ -102,8 +102,8 @@ class MainActivity : AppCompatActivity() {
         var transform = transformPerspective(originalImage, innerShape, outerShape, corners)
 
         polylines(originalImage, rectangle, true, Scalar(0.0, 0.0, 255.0), 10)
-        polylines(originalImage, inner, true, Scalar(0.0, 255.0, 0.0), 5)
-        polylines(originalImage, outline, true, Scalar(255.0, 255.0, 0.0), 5)
+        // polylines(originalImage, inner, true, Scalar(0.0, 255.0, 0.0), 5)
+        // polylines(originalImage, outline, true, Scalar(255.0, 255.0, 0.0), 5)
 
         /*
         val srcMat = Mat(4, 1, CvType.CV_32FC2)
@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
 
         warpPerspective(originalImage, dst, perspectiveTransform, Size(1600.0, 2500.0))
         */
-        // Utils.matToBitmap(transform, bitmapImage)
+        Utils.matToBitmap(transform, bitmapImage)
         // Utils.matToBitmap(originalImage, bitmapImage)
         mainImageView.setImageBitmap(bitmapImage)
     }
@@ -169,9 +169,9 @@ class MainActivity : AppCompatActivity() {
         // find perspective transform matrix
         var matrix = getPerspectiveTransform(inner, outer)
         // transform the image
-        var output = Mat()
         var point = Point(width, height)
-        var transformed = warpPerspective(image, output, matrix, Size(200.0,300.0)) // i s outer correct here?
+        var output = image.clone()
+        var transformed = warpPerspective(image, output, matrix, output.size())
         // rotate? and return the result
         return output
     }

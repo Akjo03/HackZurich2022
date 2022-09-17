@@ -2,14 +2,18 @@ package ch.hackzurich.trains
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.*
 import org.opencv.core.*
 import org.opencv.core.Core.bitwise_and
+import org.opencv.imgproc.Imgproc
 import org.opencv.imgproc.Imgproc.*
-import java.lang.Math.PI
-import java.lang.Math.min
+import java.lang.Math.*
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 
 class MainActivity : AppCompatActivity() {
@@ -19,32 +23,20 @@ class MainActivity : AppCompatActivity() {
         OpenCVLoader.initDebug()
 
         val mainImageView = findViewById<ImageView>(R.id.imageView)
+        setImageViewListener(mainImageView)
 
         val mainImage = Utils.loadResource(this, R.drawable.movie_moment, CvType.CV_8UC4)
 
-        val resizedImage = Mat()
+        var resizedImage = Mat()
         resize(mainImage, resizedImage, Size(mainImage.width()*2.0, mainImage.height()*2.0))
 
         val grayscaleImage = Mat()
         cvtColor(resizedImage, grayscaleImage, COLOR_RGBA2GRAY)
 
-        val blurredImage = Mat()
+        var blurredImage = Mat()
         GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 0.0)
 
         calculateLine(getSlice(blurredImage), resizedImage, mainImageView, 50.0, 81.0, 300, 10.0, 80.0)
-        /* THINGS FOR PERSPECTIVE WARPING
-        val srcMat = Mat(4, 1, CvType.CV_32FC2)
-        val dstMat = Mat(4, 1, CvType.CV_32FC2)
-
-
-        srcMat.put(0, 0, 50.0, 50.0)
-        dstMat.put(0, 0, 50.0, 50.0)
-        val perspectiveTransform = getPerspectiveTransform(srcMat, dstMat)
-
-        val dst: Mat = resizedImage.clone()
-
-        warpPerspective(resizedImage, dst, perspectiveTransform, Size(1600.0, 2500.0)) */
-
     }
 
     fun calculateLine(inputImage: Mat, originalImage: Mat, mainImageView: ImageView, cannyThreshold1: Double, cannyThreshold2: Double, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {
@@ -69,11 +61,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        println("amount of lines drawn: " + lineImage.rows())
-
         val bitmapImage = Bitmap.createBitmap(originalImage.cols(), originalImage.rows(), Bitmap.Config.ARGB_8888)
 
-        val polygons: List<MatOfPoint> = listOf(
+        val rectangle: List<MatOfPoint> = listOf(
             MatOfPoint(
                 Point(0.0, originalImage.height().toDouble()), // bottom left
                 Point(0.0, 450.0),  // top left
@@ -82,9 +72,84 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        polylines(originalImage, polygons, true, Scalar(0.0, 0.0, 255.0), 10)
-        Utils.matToBitmap(originalImage, bitmapImage)
+        var clearance: List<MatOfPoint> = listOf(
+            MatOfPoint(
+                Point(0.0, 0.0),
+                Point(131.0, 9.0),
+                Point(169.0, 36.0),
+                Point(169.0, 56.0),
+                Point(210.0, 56.0),
+                Point(210.0, 170.0),
+                Point(220.0, 170.0),
+                Point(220.0, 300.0),
+                Point(210.0, 300.0),
+                Point(210.0, 333.0),
+                Point(166.0, 430.0),
+                Point(102.2, 480.0),
+                Point(102.0, 480.0),
+                Point(102.0, 600.0),
+                Point(0.0, 600.0)
+            )
+        )
 
+        var flippedClearance = clearance.get(0).clone()
+        Core.multiply(clearance.get(0), MatOfDouble(1.0, -1.0, 1.0), flippedClearance)
+
+        // clearance = listOf(flippedClearance as MatOfPoint)
+        var flippedMoment = listOf(MatOfPoint(flippedClearance))
+
+        val topLeft = Point(356.96777, 724.9519)
+        val topRight = Point(529.9695, 724.9519)
+        val bottomLeft = Point(261.97998, 950.8967)
+        val bottomRight = Point(625.94604, 950.8967)
+
+        var innerShape = MatOfPoint(
+            bottomLeft, // bottom left
+            topLeft,  // top left
+            topRight,  // top right
+            bottomRight  // bottom right
+        )
+
+        var outerShape = MatOfPoint(
+            bottomLeft, // bottom left
+            Point(bottomLeft.x, topLeft.y),  // top left
+            Point(bottomRight.x, topRight.y),  // top right
+            bottomRight  // bottom right
+        )
+
+        val inner: List<MatOfPoint> = listOf(
+            innerShape
+        )
+
+        val outline: List<MatOfPoint> = listOf(
+            outerShape
+        )
+
+
+        // var corners = arrayOf(bottomLeft, topLeft, topRight, bottomRight)
+        // var transform = transformPerspective(originalImage, innerShape, outerShape, corners)
+        val startX = bottomLeft.x + ((bottomRight.x - bottomLeft.x) / 2).roundToInt()
+        println("the width: " + (kotlin.math.abs((bottomRight.x - bottomLeft.x) / 2)).roundToInt())
+        polylines(originalImage, rectangle, true, Scalar(0.0, 0.0, 255.0), 10)
+        polylines(originalImage, inner, true, Scalar(255.0, 255.0, 0.0), 5)
+        polylines(originalImage, outline, true, Scalar(0.0, 255.0, 0.0), 5)
+        polylines(originalImage, flippedMoment, true, Scalar(0.0, 255.0, 0.0), 5)
+        circle(originalImage, Point(startX.toDouble(), bottomLeft.y), 20, Scalar(0.0, 0.0, 0.0), 5)
+        /*
+        val srcMat = Mat(4, 1, CvType.CV_32FC2)
+        val dstMat = Mat(4, 1, CvType.CV_32FC2)
+
+
+        srcMat.put(0, 0, 50.0, 50.0)
+        dstMat.put(0, 0, 50.0, 50.0)
+        val perspectiveTransform = getPerspectiveTransform(srcMat, dstMat)
+
+        val dst: Mat = originalImage.clone()
+
+        warpPerspective(originalImage, dst, perspectiveTransform, Size(1600.0, 2500.0))
+        */
+        // Utils.matToBitmap(transform, bitmapImage)
+        Utils.matToBitmap(originalImage, bitmapImage)
         mainImageView.setImageBitmap(bitmapImage)
     }
 
@@ -107,6 +172,38 @@ class MainActivity : AppCompatActivity() {
         bitwise_and(source, mask, dest)
 
         return dest
+    }
+
+    fun setImageViewListener(imageView: ImageView) {
+        imageView.setOnTouchListener(object : View.OnTouchListener {
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                when (event?.action) {
+                    MotionEvent.ACTION_DOWN -> println(event.x.toString() + " " + event.y.toString())
+                }
+                return v?.onTouchEvent(event) ?: true
+            }
+        })
+    }
+
+    fun transformPerspective(image: Mat, inner: Mat, outer: Mat, corners: Array<Point>): Mat {
+        // determine width of the new image
+        // (top right and top left)
+        val widthA = Math.sqrt((corners[0].x - corners[1].x))
+        val widthB = 0.0;
+        val width = max(widthA, widthB)
+        // determine height of the new image
+        // (distance between top right and bottom right)
+        val heightA = 0.0;
+        val heightB = 0.0;
+        val height = max(heightA, heightB)
+        // find perspective transform matrix
+        var matrix = getPerspectiveTransform(inner, outer)
+        // transform the image
+        var output = Mat()
+        var point = Point(width, height)
+        var transformed = warpPerspective(image, output, matrix, Size(200.0,300.0)) // i s outer correct here?
+        // rotate? and return the result
+        return output
     }
 
     /**

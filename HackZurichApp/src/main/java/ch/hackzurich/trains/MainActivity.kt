@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity() {
         var lineImage = Mat()
         HoughLinesP(cannyImage, lineImage, 1.0, PI/180, lineThreshold, minLineLength, maxLineGap)
 
+        var recognizedTracks = mutableListOf<Pair<Point, Point>>()
+
         for (x in 0 until lineImage.rows()) {
             val vec: DoubleArray = lineImage.get(x, 0)
             val x1 = vec[0]
@@ -65,6 +67,7 @@ class MainActivity : AppCompatActivity() {
             println("y1:" + y1)
             if (min < 600.0 && y1 != y2) {
                 line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
+                recognizedTracks.add(Pair(start, end))
             }
         }
 
@@ -170,6 +173,10 @@ class MainActivity : AppCompatActivity() {
         warpPerspective(originalImage, dst, perspectiveTransform, Size(1600.0, 2500.0))
         */
         // Utils.matToBitmap(transform, bitmapImage)
+        var anchorLine = calculateLineZero(recognizedTracks.get(0).first, recognizedTracks.get(0).second, recognizedTracks.get(1).first, recognizedTracks.get(1).second)
+        line(originalImage, anchorLine.first, anchorLine.second, Scalar(255.0, 0.0, 0.0), 3)
+
+
         Utils.matToBitmap(originalImage, bitmapImage)
         mainImageView.setImageBitmap(bitmapImage)
     }
@@ -225,6 +232,14 @@ class MainActivity : AppCompatActivity() {
         var transformed = warpPerspective(image, output, matrix, Size(200.0,300.0)) // i s outer correct here?
         // rotate? and return the result
         return output
+    }
+
+    fun calculateLineZero(o1: Point, p1: Point, o2: Point, p2: Point): Pair<Point, Point> {
+        val avgOfYOrigins = listOf(o1.y, o2.y).average().roundToInt().toDouble()
+        val avgOfYPoint = listOf(p1.y, p2.y).average().roundToInt().toDouble()
+        val avgOfXOrigins = listOf(o1.x, o2.x).average().roundToInt().toDouble()
+        val avgOfXPoint = listOf(p1.x, p2.x).average().roundToInt().toDouble()
+        return Pair(Point(avgOfXOrigins, avgOfYOrigins), Point(avgOfXPoint, avgOfYPoint))
     }
 
     /**

@@ -22,7 +22,7 @@ class HoughLine(private val source: Mat) {
 
             return Pair(
                 Point((y1-yInterceptAvg)/slopeAvg, y1.toDouble()),
-                Point((y1-150-yInterceptAvg)/slopeAvg,y1.toDouble()-150)
+                Point((y1-300-yInterceptAvg)/slopeAvg,y1.toDouble()-300)
             )
         }
 

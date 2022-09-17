@@ -62,7 +62,8 @@ class MainActivity : AppCompatActivity() {
             val end = Point(x2, y2)
             // only draw lines that reach the top
             val min = min(y2, y1);
-            if (min < 600.0) {
+            println("y1:" + y1)
+            if (min < 600.0 && y1 != y2) {
                 line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
             }
         }
@@ -151,10 +152,10 @@ class MainActivity : AppCompatActivity() {
         // var transform = transformPerspective(originalImage, innerShape, outerShape, corners)
         // polylines(originalImage, rectangle, true, Scalar(0.0, 0.0, 255.0), 10)
         polylines(originalImage, inner, true, Scalar(255.0, 255.0, 0.0), 5)
-        polylines(originalImage, outline, true, Scalar(0.0, 255.0, 0.0), 5)
+        /// polylines(originalImage, outline, true, Scalar(0.0, 255.0, 0.0), 5)
         polylines(originalImage, clearance1, true, Scalar(0.0, 255.0, 0.0), 5)
         polylines(originalImage, clearance2, true, Scalar(0.0, 255.0, 0.0), 5)
-        circle(originalImage, Point(startX.toDouble(), bottomLeft.y), 20, Scalar(0.0, 0.0, 0.0), 5)
+        circle(originalImage, Point(startX, bottomLeft.y), 20, Scalar(0.0, 0.0, 250.0), 5)
         /*
         val srcMat = Mat(4, 1, CvType.CV_32FC2)
         val dstMat = Mat(4, 1, CvType.CV_32FC2)

@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
         warpPerspective(originalImage, dst, perspectiveTransform, Size(1600.0, 2500.0))
         */
         // Utils.matToBitmap(transform, bitmapImage)
-        var anchorLine = calculateLineZero(recognizedTracks.get(0).first, recognizedTracks.get(0).second, recognizedTracks.get(1).first, recognizedTracks.get(1).second)
+        var anchorLine = calculateLineZero(recognizedTracks.get(0).second, recognizedTracks.get(0).first, recognizedTracks.get(1).first, recognizedTracks.get(1).second)
         line(originalImage, anchorLine.first, anchorLine.second, Scalar(255.0, 0.0, 0.0), 3)
 
 

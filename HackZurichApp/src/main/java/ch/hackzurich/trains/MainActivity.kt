@@ -6,7 +6,6 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import org.opencv.android.*
 import org.opencv.core.*
-import org.opencv.core.Core.*
 import org.opencv.imgproc.Imgproc.*
 import java.lang.Math.PI
 
@@ -30,11 +29,15 @@ class MainActivity : AppCompatActivity() {
         val blurredImage = Mat()
         GaussianBlur(grayscaleImage, blurredImage, Size(5.0, 5.0), 0.0)
 
+        calculateLine(blurredImage, resizedImage, mainImageView, 50.0, 15.0, 50, 20.0, 20.0)
+    }
+
+    fun calculateLine(inputImage: Mat, originalImage: Mat, mainImageView: ImageView, cannyThreshold1: Double, cannyThreshold2: Double, lineThreshold: Int, minLineLength: Double, maxLineGap: Double) {
         val cannyImage = Mat()
-        Canny(blurredImage, cannyImage, 50.0, 150.0)
+        Canny(inputImage, cannyImage, cannyThreshold1, cannyThreshold2)
 
         var lineImage = Mat()
-        HoughLinesP(cannyImage, lineImage, 1.0, PI/180, 50, 20.0, 20.0)
+        HoughLinesP(cannyImage, lineImage, 1.0, PI/180, lineThreshold, minLineLength, maxLineGap)
 
         for (x in 0 until lineImage.cols()) {
             val vec: DoubleArray = lineImage.get(0, x)
@@ -44,12 +47,12 @@ class MainActivity : AppCompatActivity() {
             val y2 = vec[3]
             val start = Point(x1, y1)
             val end = Point(x2, y2)
-            line(resizedImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
+            line(originalImage, start, end, Scalar(255.0, 0.0, 0.0), 3)
         }
 
-        val bitmapImage = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888)
+        val bitmapImage = Bitmap.createBitmap(originalImage.cols(), originalImage.rows(), Bitmap.Config.ARGB_8888)
 
-        Utils.matToBitmap(resizedImage, bitmapImage)
+        Utils.matToBitmap(originalImage, bitmapImage)
 
         mainImageView.setImageBitmap(bitmapImage)
     }

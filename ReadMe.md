@@ -1,4 +1,4 @@
-# Teailee 
+# Trailee 
 
 ## Technologies
 Trailee is an opensource Android-App built in Kotlin.
